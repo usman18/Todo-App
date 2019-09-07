@@ -11,6 +11,7 @@ class TodoScreen extends StatefulWidget {
 class _TodoScreenState extends State<TodoScreen> {
   final TextEditingController _textEditingController = TextEditingController();
   var dbHelper = DatabaseHelper();
+  List<TodoItem> _itemsList = List<TodoItem>();
 
   @override
   void initState() {
@@ -22,7 +23,32 @@ class _TodoScreenState extends State<TodoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
-        children: <Widget>[TodoItem('Item1', 'Date')],
+        children: <Widget>[
+          Flexible(
+            child: ListView.builder(
+              itemBuilder: (_, int position) {
+                return Card(
+                  color: Colors.white10,
+                  child: ListTile(
+                    title: _itemsList[position],
+                    onLongPress: () => debugPrint,
+                    trailing: Listener(
+                      key: Key(_itemsList[position].itemName),
+                      child: Icon(
+                        Icons.remove_circle,
+                        color: Colors.red,
+                      ),
+                      onPointerDown: (pointerEvent) => {},
+                    ),
+                  ),
+                );
+              },
+              padding: EdgeInsets.all(8.0),
+              reverse: false,
+              itemCount: _itemsList.length,
+            ),
+          )
+        ],
       ),
       backgroundColor: Colors.black87,
       floatingActionButton: FloatingActionButton(
@@ -53,39 +79,42 @@ class _TodoScreenState extends State<TodoScreen> {
         FlatButton(
             onPressed: () {
               _handleSubmit(_textEditingController.text);
+              Navigator.pop(context);
             },
             child: Text('Add')),
         FlatButton(
           onPressed: () {
             Navigator.pop(context);
           },
-          child: Text(
-            'Cancel'
-          ),
+          child: Text('Cancel'),
         )
       ],
     );
-    showDialog(context: context, builder: (_) {
-      return alert;
+    showDialog(
+        context: context,
+        builder: (_) {
+          return alert;
+        });
+  }
+
+  _handleSubmit(String text) async {
+    _textEditingController.clear();
+    var item = TodoItem(text, DateTime.now().toIso8601String());
+    int savedItemId = await dbHelper.saveItem(item);
+    var addedItem = await dbHelper.getItem(savedItemId);
+    setState(() {
+      _itemsList.insert(0, addedItem);
     });
   }
 
-  _handleSubmit(String text) async{
-    _textEditingController.clear();
-    var item = TodoItem(text, DateTime.now().toIso8601String());
-      int res = await dbHelper.saveItem(item);
-      print('Result $res');
-  }
-
-  _readTodoItemsList() async{
-     var items = await dbHelper.getAllItems();
-     print('List $items');
-     items.forEach((item) {
+  _readTodoItemsList() async {
+    var items = await dbHelper.getAllItems();
+    print('List $_itemsList');
+    items.forEach((item) {
+      setState(() {
         var todoItem = TodoItem.fromMap(item);
-        print('Item name ${todoItem.itemName}');
-     });
+        _itemsList.add(todoItem);
+      });
+    });
   }
-
-
-
 }

@@ -9,7 +9,7 @@ class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper.internal();
   static Database _db;
 
-  final String tableItem = "user";
+  final String tableItem = "items";
   final String columnId = "id";
   final String columnItemName= "itemname";
   final String columnDateCreated = "datecreated";
@@ -56,7 +56,7 @@ class DatabaseHelper {
 
   Future<List> getAllItems() async {
       var dbClient = await db;
-      var result = await dbClient.rawQuery('SELECT * FROM $tableItem');
+      var result = await dbClient.rawQuery('SELECT * FROM $tableItem ORDER BY $columnItemName ASC');
       return result.toList();
   }
 
