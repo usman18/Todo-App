@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:todo_app/util/DatabaseHelper.dart';
 
 import '../model/TodoItem.dart';
+import 'package:todo_app/util/date_formatter.dart';
 
 class TodoScreen extends StatefulWidget {
   @override
@@ -31,14 +32,15 @@ class _TodoScreenState extends State<TodoScreen> {
                   color: Colors.white10,
                   child: ListTile(
                     title: _itemsList[position],
-                    onLongPress: () => debugPrint,
+                    onLongPress: () => _updateTodoItemDialog(_itemsList[position], position),
                     trailing: Listener(
                       key: Key(_itemsList[position].itemName),
                       child: Icon(
                         Icons.remove_circle,
-                        color: Colors.red,
+                        color: Colors.redAccent,
                       ),
-                      onPointerDown: (pointerEvent) => {},
+                      onPointerDown: (pointerEvent) => _deleteTodoItem(_itemsList[position].id, position)
+                      ,
                     ),
                   ),
                 );
@@ -67,7 +69,6 @@ class _TodoScreenState extends State<TodoScreen> {
           Expanded(
               child: TextField(
             controller: _textEditingController,
-            autofocus: true,
             decoration: InputDecoration(
                 labelText: 'Item',
                 hintText: 'Add this item',
@@ -79,6 +80,7 @@ class _TodoScreenState extends State<TodoScreen> {
         FlatButton(
             onPressed: () {
               _handleSubmit(_textEditingController.text);
+              _textEditingController.clear();
               Navigator.pop(context);
             },
             child: Text('Add')),
@@ -99,7 +101,7 @@ class _TodoScreenState extends State<TodoScreen> {
 
   _handleSubmit(String text) async {
     _textEditingController.clear();
-    var item = TodoItem(text, DateTime.now().toIso8601String());
+    var item = TodoItem(text, dateFormatted());
     int savedItemId = await dbHelper.saveItem(item);
     var addedItem = await dbHelper.getItem(savedItemId);
     setState(() {
@@ -116,5 +118,67 @@ class _TodoScreenState extends State<TodoScreen> {
         _itemsList.add(todoItem);
       });
     });
+  }
+
+  _deleteTodoItem(int id, int position) async{
+    await dbHelper.deleteItem(id);
+
+    setState(() {
+      _itemsList.removeAt(position);
+    });
+
+  }
+
+  _updateTodoItemDialog(TodoItem item, int position) {
+
+    var alert = AlertDialog(
+      title: Text(
+        'Update Item'
+      ),
+      content: Row(
+        children: <Widget>[
+          Expanded(
+            child: TextField(
+              controller: _textEditingController,
+              decoration: InputDecoration(
+                labelText: 'Item',
+                icon: Icon(Icons.update)
+              ),
+            ),
+          )
+        ],
+      ),
+      actions: <Widget>[
+        FlatButton(onPressed: () async{
+          TodoItem updatedItem = TodoItem.fromMap({
+            'itemname' : _textEditingController.text,
+            'datecreated' : dateFormatted(),
+            'id' : item.id
+          });
+
+          _handleSubmittedUpdate(position, item);
+          await dbHelper.updateItem(updatedItem);
+          setState(() {
+            _readTodoItemsList();
+          });
+          Navigator.pop(context);
+
+        }, child: Text(
+          'Update'
+        )),
+        FlatButton(onPressed: () => Navigator.pop(context), child: Text(
+          'Cancel'
+        ))
+      ],
+
+    );
+    showDialog(context: context, builder: (_) {
+      return alert;
+    });
+
+  }
+
+  void _handleSubmittedUpdate(int position, TodoItem item) {
+    _itemsList.removeWhere((element) => _itemsList[position].id == item.id);
   }
 }

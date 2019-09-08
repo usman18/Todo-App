@@ -56,7 +56,7 @@ class DatabaseHelper {
 
   Future<List> getAllItems() async {
       var dbClient = await db;
-      var result = await dbClient.rawQuery('SELECT * FROM $tableItem ORDER BY $columnItemName ASC');
+      var result = await dbClient.rawQuery('SELECT * FROM $tableItem ORDER BY $columnId DESC');
       return result.toList();
   }
 
