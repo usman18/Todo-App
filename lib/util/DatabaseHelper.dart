@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper.internal();
+  static DatabaseHelper _instance = DatabaseHelper._internal();
   static Database _db;
 
   final String tableItem = "items";
@@ -14,9 +14,14 @@ class DatabaseHelper {
   final String columnItemName= "itemname";
   final String columnDateCreated = "datecreated";
 
-  factory DatabaseHelper() => _instance;
+  factory DatabaseHelper() {
+    if (_instance == null) {
+      _instance = DatabaseHelper._internal();
+    }
+    return _instance;
+  }
 
-  DatabaseHelper.internal();
+  DatabaseHelper._internal();
 
   Future<Database> get db async {
     if (_db != null) {

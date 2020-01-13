@@ -32,7 +32,7 @@ class _TodoScreenState extends State<TodoScreen> {
                   color: Colors.white10,
                   child: ListTile(
                     title: _itemsList[position],
-                    onLongPress: () => _updateTodoItemDialog(_itemsList[position], position),
+                    onTap: () => _updateTodoItemDialog(_itemsList[position], position),
                     trailing: Listener(
                       key: Key(_itemsList[position].itemName),
                       child: Icon(
