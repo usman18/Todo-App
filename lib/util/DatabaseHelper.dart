@@ -40,7 +40,7 @@ class DatabaseHelper {
     return db;
   }
 
-  Future<void> _onCreate(Database db, int version) async{
+  FutureOr<void> _onCreate(Database db, int version) async{
     await db.execute(
       "CREATE TABLE $tableItem ($columnId INTEGER PRIMARY KEY, $columnItemName TEXT, $columnDateCreated TEXT)"
     );
